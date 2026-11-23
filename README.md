@@ -1,8 +1,8 @@
 # Quantum Transport Quantum Pool
 
-## Documentacao
+## Documentação
 
-- [Report.md](./DOCS/Report.md): teoria, premissas e equacoes.
-- [Results.md](./DOCS/Results.md): ilustracoes e interpretacao dos resultados.
+- [Report.md](./DOCS/Report.md): teoria, premissas e equações.
+- [Results.md](./DOCS/Results.md): ilustrações e interpretação dos resultados.
 - [Problem.md](./DOCS/Problem.md): enunciado, objetivos e metodologia inicial.
-- [Skill de documentacao](./.github/skills/maintain-research-documentation/SKILL.md): fluxo para manter teoria, calculos e resultados reproduziveis.
+- [Skill de documentação](./.github/skills/maintain-research-documentation/SKILL.md): fluxo para manter teoria, cálculos e resultados reproduzíveis.

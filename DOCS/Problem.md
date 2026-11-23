@@ -6,6 +6,10 @@ Investigar como a geometria de uma cavidade de pontos quânticos influencia o ap
 
 O sistema é uma cavidade aberta bidimensional limitada por uma forma irregular. A cavidade será acoplada a três terminais elétricos azuis, conforme a disposição ilustrada em `inomeado.svg`, e modelada em rede discreta com o pacote Kwant. Os terminais serão tratados como contatos ideais que possuem largura finita e um modo energético controlado pela energia de Fermi.
 
+![Geometria da cavidade com os três terminais azuis](../inomeado.svg)
+
+**Figura 1: Cavidade de pontos quânticos**
+
 A temperatura será considerada zero e não haverá campo magnético externo. O projeto deverá comparar uma cavidade regular, obtida por uma suavização controlada do contorno irregular, com uma deformação desse contorno representativa da geometria ilustrada.
 
 A pergunta central é:
@@ -30,7 +34,7 @@ Construir uma implementação mínima e reproduzível em Kwant para visualizar e
 
 ## 3. Modelo físico
 
-Adote o Hamiltoniano tight-binding
+Adote o Hamiltoniano tight-binding:
 
 $$
 H = \sum_i \epsilon_i c_i^\dagger c_i
@@ -40,7 +44,7 @@ $$
 
 onde $\epsilon_i$ é a energia local, $t$ é a amplitude de hopping entre primeiros vizinhos e $c_i^\dagger$, $c_i$ são os operadores de criação e aniquilação.
 
-Os termos azulados da geometria representam os três terminais externos. Eles devem ser incluídos como leads semi-infinitos acoplados à cavidade em posições compatíveis com a figura.
+Os termos azuis da geometria representam os três terminais externos. Eles devem ser incluídos como leads semi-infinitos acoplados à cavidade em posições compatíveis com a figura.
 
 Não considerar:
 
@@ -75,7 +79,7 @@ Na primeira etapa calcular e comparar:
 3. **Corrente local:** distribuição espacial do fluxo calculado pela rede;
 4. **Espectro fechado:** autovalores da cavidade, utilizados apenas em uma aproximação fechada ou como referência auxiliar;
 5. **Separação de níveis:** razão ou distribuição das separações dos níveis próximos;
-6. **Atraso ou tempo de permanência:** tempo de permanência obtido do Smith matrix ou outra implementação compatível com Kwant;
+6. **Atraso ou tempo de permanência:** tempo de permanência obtido da Smith matrix ou outra implementação compatível com Kwant;
 7. **Suscetibilidade à deformação:** variação da condutância e da densidade local ao perturbar suavemente o contorno;
 8. **Ergodicidade espacial:** distribuição da densidade em regiões da cavidade;
 9. **Indicadores clássicos auxiliares:** trajetórias regulares e dispersão de trajetórias somente quando puderem ser obtidas com geometria correspondente.
@@ -159,4 +163,4 @@ notebooks/
 
 Essa estrutura será adaptada conforme o desenvolvimento. Nenhum cálculo numérico principal deve ser realizado diretamente dentro de notebooks.
 
-Quero entender e compreender o transporte quântico, no modelo do bilhar quântico juntamente ao kwant, utilizando a geometria visualizada no arquivo inomeado.svg.
+Quero entender e compreender o transporte quântico, no modelo do bilhar quântico juntamente ao Kwant, utilizando a geometria visualizada no arquivo `inomeado.svg`.
