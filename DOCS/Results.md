@@ -1,82 +1,127 @@
 # Results
 
-Este documento reúne ilustrações e interpretações dos resultados obtidos pelo projeto.
+Este documento registra os resultados da geometria principal: o floco de neve deformado com seis leads.
 
-Cada resultado deve indicar a equação correspondente em [Report.md](./Report.md), o script que realizou o cálculo, o arquivo `.npz` produzido e o notebook usado para a plotagem.
-
-## Resultado G1 — Comparação das geometrias
+## Resultado G1 — Floco deformado
 
 - Equação: [Report.md](./Report.md), equações R3–R9.
 - Cálculo: `scripts/build_geometries.py`.
 - Dados: `data/geometries.npz`.
-- Contornos auxiliares: `data/geometries.svg`.
+- Contorno auxiliar: `data/geometries.svg`.
 - Plotagem: `notebooks/plot_comparison.ipynb`.
 - Figura: `figures/geometry_comparison.png`.
 
 ### Ilustração
 
-![Comparação das cavidades regular e deformada com os três terminais](../figures/geometry_comparison.png)
+![Floco de neve deformado com seis terminais](../figures/geometry_comparison.png)
 
 ### Leitura
 
-A lattice possui tamanho efetivo $120\times120$. A cavidade regular contém 478 sítios e a deformada contém 505 sítios. Os terminais azuis foram projetados sobre sítios internos de fronteira das duas máscaras, mantendo correspondência relativa com os três terminais extraídos de `inomeado.svg`.
+A lattice possui tamanho efetivo $120\times120$ e o floco deformado contém 2.084 sítios. Seis terminais azuis estão distribuídos uniformemente a $60^\circ$ e acoplados à fronteira interna da máscara.
 
-A diferença entre máscaras mostra a região ocupada apenas pela cavidade deformada, a região ocupada apenas pela cavidade regular e o interior comum. Esse resultado ainda representa apenas geometria discretizada: não permite inferir transporte, caos clássico ou caos quântico.
+## Resultado T1 — Transporte dos seis terminais
 
-## Resultado T1 — Transportes entre os três terminais
-
-- Equação: [Report.md](./Report.md), equações R12–R15.
+- Equação: R12--R15.
 - Cálculo: `scripts/calculate_transport.py`.
-- Dados: `data/regular.npz` e `data/deformed.npz`.
-- Plotagem: ainda não realizada para os resultados de transporte.
-- Lattice: $120\times120$.
-- Hopping: convenção interna $t=-1$.
-- Energia de Fermi: intervalo $[-1.8,1.8]$, com 37 pontos igualmente espaçados.
-- Largura dos leads: 7 sítios.
+- Dados: `data/deformed.npz`.
+- Matriz: transmissões $T_{mn}(E)$ com forma $(37,6,6)$.
+- Modos: `mode_counts` com forma $(37,6)$.
+- Fluxos: `outgoing_per_source` e `incoming_per_drain` com forma $(37,6)$.
+- Plotagem: `notebooks/plot_transport.ipynb`.
+- Figura: `figures/transport_deformed.png`.
 
-### Dados disponíveis
+Há quinze pares distintos entre os seis terminais. Para cada $m<n$, a relação
 
-Os arquivos contêm:
+$$
+T_{mn}(E)=\sum_{\alpha\in m}\sum_{\beta\in n}|S_{n\beta,m\alpha}(E)|^2
+$$
 
-- `energies`: vetor de 37 energias;
-- `transmissions`: matriz tridimensional com forma $(37,3,3)$;
-- `mode_counts`: quantidade de modos propagantes por lead e energia;
-- `lead_width`: largura efetiva dos três contatos;
-- `geometry`: nome da geometria correspondente.
+resume a probabilidade de propagação entre os contatos. A soma por coluna representa o fluxo incidente organizado por terminal de origem, enquanto a soma por linha representa o fluxo recebido por terminal de destino.
 
-O índice $(d,s)$ da matriz representa a transmissão do terminal de origem $s$ para o terminal de destino $d$. Os pares utilizados no projeto são:
+## Resultado L1 — Densidade e corrente dos seis terminais
 
-- $T_{12}$, origem 1 e destino 2;
-- $T_{13}$, origem 1 e destino 3;
-- $T_{23}$, origem 2 e destino 3.
+- Equações: R16--R22.
+- Cálculo: `scripts/calculate_local.py`.
+- Dados: `data/local_deformed.npz`.
+- `densities`: forma $(6,N_{sítios})$.
+- `iniquities`: concentração espacial por terminal injetor.
+- `normalized_centers`: indicador escalar associado ao centro da distribuição.
+- `current_links`: correntes somadas por terminal de origem.
 
-### Faixa de modos propagantes
+Cada linha de `densities` corresponde à função de onda injetada por um lead. Densidade e fluxo devem ser interpretados conjuntamente: densidade indica distribuição espacial; corrente indica direção e conservação; transmissão indica quantificação global entre terminais.
 
-Os resultados incluem número de modos variando com a energia em cada lead. Os dados ainda não foram usados para excluir energias com conjuntos incompatíveis de canais propagantes.
+## Resultado L2 — Mapas por terminal de entrada
 
-### Resumo numérico inicial
+- Equações: R16--R22.
+- Cálculo: `scripts/calculate_local.py`.
+- Dados: `data/local_deformed.npz`.
+- Energia utilizada: $E/t=0.25$.
+- Mapas de densidade: `figures/local_density_deformed.png`.
+- Mapas de fluxo: `figures/current_flow_deformed.png`.
+- Plotagem: `notebooks/plot_local_density.ipynb`.
 
-| Geometria | $T_{12}$ mínimo | $T_{12}$ máximo | $T_{13}$ mínimo | $T_{13}$ máximo | $T_{23}$ mínimo | $T_{23}$ máximo |
-|---|---:|---:|---:|---:|---:|---:|
-| Regular | 0.000000 | 2.050150 | 0.000000 | 1.847616 | 0.000000 | 1.716919 |
-| Deformada | 0.000000 | 2.051337 | 0.000000 | 1.844838 | 0.000000 | 1.737892 |
+Foram gerados seis mapas de densidade, um por cada lead injetor $T_1$ a $T_6$, e seis mapas correspondentes de fluxo nos links da lattice. Os índices de iniquidade mostram a concentração relativa da distribuição para cada entrada. Os vetores azuis e laranja representam a orientação da corrente calculada pelo operador de corrente do Kwant.
 
-Esses números são transmissões adimensionais da matriz de espalhamento. Seus máximos não mostram isoladamente uma tendência de comparação, pois a variação de energia e o número de modos podem afetar o resultado.
+## Resultado H1 — Relações dos seis leads
 
-### Leitura provisória
+- Equações: R13--R22.
+- Cálculo integrado: `scripts/calculate_lead_observables.py`.
+- Dados: `data/lead_observables.npz`.
+- Figura: `figures/lead_observables.png`.
+- Plotagem: `notebooks/plot_transport.ipynb`.
 
-A comparação direta apresenta pequenas diferenças nos máximos dos pares analisados. Não é adequado concluir sobre caos clássico ou sensibilidade geométrica com base apenas nesses extremos. Uma interpretação quantitativa exige comparar as curvas completas, verificar conservação dos fluxos, usar intervalos compatíveis de modos propagantes e repetir a varredura com discretizações refinadas.
+O arquivo contém transmissões $(37,6,6)$, modos $(37,6)$, fluxos emergentes e recebidos $(37,6)$, densidades $(37,6,N_{sítios})$, índices de concentração $(37,6)$ e correntes por link $(37,6,N_{links})$.
 
-## Resultado V1 — Validação disponível
+Os quinze pares distintos satisfazem
 
-- Ambiente validado: Conda `Tconda`, Kwant 1.5.0.
-- Arquivos existentes: `data/geometries.npz`, `data/regular.npz`, `data/deformed.npz`.
-- Figura existente: `figures/geometry_comparison.png`.
+$$
+T_{mn}(E)=\sum_{\alpha\in n}\sum_{\beta\in m}|S_{m\beta,n\alpha}(E)|^2.
+$$
 
-### Limites atuais
+O número de modos define a disponibilidade dos canais, enquanto a transmissão mede o fluxo efetivo entre origens e destinos. Densidade e corrente devem ser relacionadas a esses fluxos globais pelas Equações R16--R22.
 
-Os terminais foram implementados como leads semi-infinitos no script de transporte, mas sua correspondência visual com `inomeado.svg` ainda precisa ser revisada. Algumas posições foram projetadas pela distância euclidiana sobre a máscara da lattice e não são uma reprodução direta dos retângulos azuis de origem.
+## Resultado S1 — Espectro fechado
 
-Os dados disponíveis ainda não incluem mapas de densidade local, mapas de corrente, espectro fechado, separações de níveis, matriz de Smith, suscetibilidade espacial ou indicadores clássicos de caos.
+- Equações: R23–R27.
+- Cálculo: `scripts/calculate_spectrum.py`.
+- Dados: `data/spectrum_deformed.npz`.
 
-Portanto, os dados permitem iniciar a comparação geométrica e o transporte coerente, mas não sustentam ainda uma conclusão sobre caos quântico.
+Estes resultados pertencem apenas ao modelo aberto/fechado do floco deformado. Não há comparação com uma geometria regular neste projeto.
+
+## Resultado C1 — Convergência e conservação da matriz S
+
+- Equações: R13–R15.
+- Cálculo: `scripts/validate_convergence.py`.
+- Dados: `data/convergence_validation.npz`.
+- Resoluções: $80\times80$, $120\times120$ e $160\times160$.
+- Faixa: $E/t\in[-1.8,1.8]$, 37 pontos.
+- Figura: `figures/convergence_validation.png`.
+
+### Conservação
+
+O valor médio de $\|SS^\dagger-I\|_F$ foi de $1.330\times10^{-13}$ em $80\times80$, $2.884\times10^{-13}$ em $120\times120$ e $4.909\times10^{-13}$ em $160\times160$. Os máximos ficaram abaixo de $1.12\times10^{-12}$. $E=0$ apresentou singularidade MUMPS em todas as resoluções e foi excluído da validação daquela energia.
+
+### Convergência
+
+A diferença média das transmissões foi:
+
+- $80\times80$ contra $120\times120$: $2.484670\times10^{-1}$;
+- $120\times120$ contra $160\times160$: $4.244922\times10^{-1}$.
+
+As transmissões ainda não são convergidas entre as resoluções testadas. Portanto, os resultados atuais são específicos da discretização e exigem refinamento adicional antes de interpretação física. A estabilidade da matriz S não garante convergência espacial das transmissões.
+
+## Resultado F1 — Fluxo de corrente e conservação local
+
+- Equação: R20–R21.
+- Cálculo: `scripts/calculate_local.py`.
+- Dados: `data/local_deformed.npz`.
+- Mapas por lead: `figures/current_flow_each_terminal.png`.
+- Energia: $E/t=0.25$.
+
+Para cada terminal injetor foram calculados os correntes nos links e a divergência em cada sítio:
+
+$$
+D_i=\sum_j J_{ij}.
+$$
+
+Os resíduos devem ser analisados separando os sítios internos da cavidade dos sítios acoplados aos leads. Nos sítios internos, $D_i$ deve tender a zero; nos sítios de interface, desvios representam entradas ou saídas de probabilidade entre cavidade e reservatórios. Os valores médios e máximos por terminal estão registrados em `data/local_deformed.npz`.

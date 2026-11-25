@@ -12,22 +12,19 @@ Este documento não apresenta resultados experimentais ou numéricos ainda não 
 
 ### 2.1 Cavidade quântica aberta
 
-A cavidade é uma região bidimensional finita contendo elétrons livres efetivamente confinados por contornos duros. A cavidade é conectada a três terminais semi-infinitos. Como existem três contatos, o sistema é aberto: partículas podem entrar por um terminal e sair por outro ou pelo próprio terminal.
+A cavidade é uma região bidimensional finita contendo elétrons livres efetivamente confinados por contornos duros. A cavidade é conectada a seis terminais semi-infinitos uniformemente distribuídos ao redor de um contorno de floco de neve.
 
-O estudo comparará:
-
-1. uma cavidade suave e aproximadamente regular;
-2. uma cavidade deformada, derivada da geometria visualizada em `inomeado.svg`.
+O estudo utilizará exclusivamente uma cavidade deformada com simetria hexagonal de floco de neve. Não haverá comparação ou construção de uma geometria regular no produto principal.
 
 A deformação deve ser introduzida sem alterar significativamente:
 
 - o tamanho efetivo da cavidade;
-- as posições relativas dos três terminais;
+- as posições relativas dos seis terminais;
 - a largura dos terminais;
 - o hopping da lattice;
 - o intervalo de energia e a discretização.
 
-Essa regra mantém o contorno como principal parâmetro da comparação inicial.
+Essa regra mantém o contorno como principal parâmetro.
 
 ### 2.2 Unidades e convenções
 
@@ -95,40 +92,13 @@ Os zeros fora dos pares de vizinhos são responsáveis pela estrutura esparsa da
 
 ### Limite de validade
 
-A lattice quadrada representa apenas aproximadamente uma geometria contínua. Quanto menor $a$ e maior a quantidade de sítios, melhor o contorno é resolvido. O contorno e os terminais devem ser verificados visualmente e comparados para os dois casos.
+A lattice quadrada representa apenas aproximadamente uma geometria contínua. Quanto menor $a$ e maior a quantidade de sítios, melhor o contorno deformado é resolvido. O contorno e os seis terminais devem ser verificados visualmente.
 
 ## 4. Geometria da cavidade
 
-### 4.1 Contorno suave
+### 4.1 Contorno principal
 
-A cavidade regular será construída a partir de um contorno fechado suavizado. A curva pode ser definida em coordenadas polares relativas ao centro $r_0=(x_0,y_0)$:
-
-$$
-R(\theta)=R_0+\delta R(\theta),
-\tag{R3}
-$$
-
-com
-
-$$
-x(\theta)=x_0+R(\theta)\cos\theta,
-\qquad
-y(\theta)=y_0+R(\theta)\sin\theta.
-\tag{R4}
-$$
-
-Para a primeira etapa, uma curva regular pode ser gerada por modulações suaves de Fourier. Por exemplo:
-
-$$
-R(\theta)=R_0
-\left[1+
-\alpha\cos(3\theta)+
-\beta\sin(5\theta)
-\right],
-\tag{R5}
-$$
-
-sendo $R_0$ o raio médio e $\alpha,\beta$ amplitudes pequenas. Na geometria regular, $\alpha$ e $\beta$ devem ser muito menores que na geometria deformada. A suavidade evita introduzir bordas artificiais abruptas que não são parte da deformação física pretendida.
+A cavidade principal é um floco de neve deformado definido por um contorno fechado.
 
 ### Equação R6 — Contorno deformado
 
@@ -144,7 +114,7 @@ R_d(\theta)=R_0
 \tag{R6}
 $$
 
-Os coeficientes $\alpha_k$ devem ser pequenos o bastante para que cada curva permaneça simples e fechada. A escolha das harmonias deve representar visualmente a irregularidade da figura `inomeado.svg` sem criar auto-interseções.
+Os coeficientes devem ser pequenos o bastante para que cada curva permaneça simples e fechada. A escolha das harmonias representa visualmente ramificações do floco de neve sem criar auto-interseções.
 
 ### 4.2 Conversão para sítios da lattice
 
@@ -159,22 +129,16 @@ $$
 
 Se o contorno estiver definido por uma sequência de vértices $(x_k,y_k)$, o teste de ponto-em-polígono determina quais sítios da lattice estão contidos em $\Omega$.
 
-A discretização deve preservar:
-
-- uma lattice quadrada;
-- o mesmo número efetivo de sítios nas duas geometrias;
-- o mesmo tamanho de lattice;
-- a mesma resolução espacial;
-- terminais acoplados às posições relativas correspondentes.
-
-Diferentes geometrias podem apresentar pequenas mudanças no número de sítios por causa da forma da fronteira. Esses números devem ser registrados como metadados no arquivo `.npz`.
+A discretização deve preservar uma lattice quadrada de tamanho fixo $120\times120$, a mesma resolução espacial e seis terminais acoplados em posições uniformes. O número de sítios da máscara deformada deve ser registrado como metadado no `.npz`.
 
 ### 4.3 Posicionamento dos terminais
 
-Os três terminais azuis devem permanecer nas mesmas posições relativas em ambos os contornos. Em coordenadas normalizadas, suas posições podem ser descritas por
+Os seis terminais azuis permanecem uniformemente distribuídos em ângulos separados por $60^\circ$.
+
+Em coordenadas normalizadas, suas posições podem ser descritas por
 
 $$
-{\bf p}_m=(x_m,y_m),\qquad m=1,2,3.
+{\bf p}_m=(x_m,y_m),\qquad m=1,\ldots,6.
 \tag{R8}
 $$
 
@@ -244,15 +208,10 @@ A autocarreira incorpora o fato de que o lead é semi-infinito. Ela tem parte im
 
 ### Equação R13 — Matriz de espalhamento
 
-A matriz de espalhamento combina todos os canais dos três terminais:
+A matriz de espalhamento combina todos os canais dos seis terminais:
 
 $$
-S(E)=
-\begin{pmatrix}
-S_{11} & S_{12} & S_{13}\\
-S_{12} & S_{22} & S_{23}\\
-S_{13} & S_{23} & S_{33}
-\end{pmatrix},
+S(E)=\left[S_{mn}(E)\right],\qquad m,n\in\{1,\ldots,6\},
 \tag{R13}
 $$
 
@@ -295,11 +254,7 @@ para um sistema com spin degenerado. Na implementação sem spin explícito, $G_
 - $G/G_0$ coincide numericamente com $T$ quando o modelo ignora degenerescências;
 - $G$ possui unidade de condutância quando se inclui $G_0$.
 
-Para os três terminais, os pares relevantes são:
-
-- $1\rightarrow2$;
-- $1\rightarrow3$;
-- $2\rightarrow3$.
+Para os seis terminais, os pares relevantes são todas as combinações distintas $m<n$, com $m,n=1,\ldots,6$.
 
 ## 7. Densidade local e distribuição espacial
 
@@ -606,16 +561,14 @@ A ausência desses parâmetros impede uma comparação reprodutível entre cavid
 
 A implementação mínima deve incluir:
 
-- visualização das duas geometrias com terminais;
-- teste de um número conhecido de modos propagantes;
+- visualização do floco deformado com seis terminais;
 - teste de conservação da matriz de espalhamento;
-- comparação da corrente integrada com $T$;
+- comparação da corrente integrada com a transmissão;
 - pelo menos três energias representativas;
 - comparação da condutância entre os pares de terminais;
 - mapas de densidade e fluxo para cada terminal injetor;
 - refinamento qualitativo da lattice;
-- redução ou confirmação da estabilidade do passo de energia;
-- comparação cautelosa de espectros fechados.
+- análise cautelosa do espectro fechado.
 
 Uma energia representativa pode ser selecionada por um dos seguintes critérios:
 
@@ -632,14 +585,14 @@ Não é suficiente escolher três valores arbitrários sem declarar o procedimen
 
 A entrega didática deverá incluir:
 
-1. figura das duas geometrias com três terminais destacados;
-2. número de modos propagantes em função da energia;
-3. condutância dos pares de terminais em função de $E$;
-4. mapas de densidade para o terminal injetor escolhido;
-5. mapa de corrente local;
-6. histogramas ou curvas de variação dos observáveis;
-7. comparação visual regular versus deformada;
-8. breve texto explicando o que mudou entre as geometrias.
+1. figura do floco deformado com seis terminais destacados;
+2. matriz e curvas das transmissões dos quinze pares;
+3. número de modos propagantes por lead;
+4. seis mapas de densidade por terminal injetor;
+5. seis mapas de fluxo por terminal injetor;
+6. divergência local $D_i$ e conservação da corrente;
+7. resíduos de unitividade da matriz S;
+8. espectro fechado e histogramas de separação.
 
 Todos os notebooks devem citar a equação utilizada. Por exemplo:
 
@@ -681,7 +634,7 @@ A estrutura recomendada é:
 
 ```text
 notebooks/plot_transport.ipynb
-  -> lê data/regular.npz e data/deformed.npz
+  -> lê data/deformed.npz
   -> aplica equações R14 e R15
 
 scripts/calculate_transport.py
@@ -691,10 +644,16 @@ scripts/calculate_transport.py
 scripts/calculate_spectrum.py
   -> calcula o espectro fechado pela Eq. R23
   -> salva os dados espectrais
+
+scripts/calculate_lead_observables.py
+  -> integra transmissões, modos e observáveis locais dos seis leads
+
+scripts/validate_convergence.py
+  -> refina a lattice e verifica $SS^\dagger-I$ em toda a faixa
 ```
 
 ## 17. Síntese conceitual
 
 O transporte quântico na cavidade é determinado pela interferência coerente entre todos os caminhos permitidos pelos terminais. A mudança de geometria modifica os caminhos de espalhamento, os estados quasinormais e os padrões espaciais. A condutância revela a resposta global, a densidade mostra a distribuição interna da onda, o fluxo verifica a conservação da probabilidade e o espectro fechado fornece uma referência auxiliar.
 
-Nenhum desses observáveis isoladamente demonstra caos. A conclusão deve ser construída por convergência numérica e por comparação consistente entre geometrias, energias e indicadores complementares.
+Nenhum desses observáveis isoladamente demonstra caos. A conclusão deve ser construída por convergência numérica, unitividade da matriz S, conservação local da corrente e análise consistente entre terminais, energias e indicadores complementares.

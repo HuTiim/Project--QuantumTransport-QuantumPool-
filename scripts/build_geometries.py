@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Constrói numericamente as geometrias regular e deformada em Kwant.
+"""Constrói exclusivamente o floco de neve deformado em Kwant.
 
-Referências: contornos das Eqs. R3--R7, terminais das Eqs. R8--R9 e
-rede tight-binding da Eq. R2 do DOCS/Report.md. Este script realiza apenas
-cálculo numérico e escrita de dados; não gera gráficos.
+Referências: contorno R3--R6, lattice R7, terminais R8--R9 do
+DOCS/Report.md. Este script realiza apenas cálculo numérico e escrita de dados.
 """
 
 from __future__ import annotations
@@ -21,7 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SVG_PATH = ROOT / "inomeado.svg"
 DATA_DIR = ROOT / "data"
 
-TERMINAL_NAMES = ("terminal_1", "terminal_2", "terminal_3")
+TERMINAL_NAMES = tuple(f"terminal_{index}" for index in range(1, 7))
+LEAD_COUNT = 6
 
 
 def _rotate_point(point: np.ndarray, angle_deg: float) -> np.ndarray:
@@ -363,77 +363,73 @@ def project_terminals_to_boundary(mask: np.ndarray, target_points: np.ndarray) -
     return np.asarray(projected, dtype=int), np.asarray(normals, dtype=float)
 
 
+def snowflake_contour(n: int = 721) -> np.ndarray:
+    """Gera o contorno principal deformado de floco de neve pelas Eqs. R3--R6."""
+    theta = np.linspace(-math.pi, math.pi, n, endpoint=False)
+    radius = 0.20 * (
+        1.0
+        + 0.55 * np.cos(6.0 * theta)
+        + 0.22 * np.cos(18.0 * theta)
+        + 0.12 * np.cos(24.0 * theta)
+    )
+    return np.column_stack((0.5 + radius * np.cos(theta),
+                            0.5 + radius * np.sin(theta)))
+
+
+def uniform_terminal_targets() -> np.ndarray:
+    """Define seis leads uniformemente distribuídos a 60 graus pela Eq. R8."""
+    angle = np.deg2rad(np.arange(6) * 60.0)
+    radius = 0.25
+    return np.column_stack((0.5 + radius * np.cos(angle),
+                            0.5 + radius * np.sin(angle)))
+
+
 def main(lattice_size: tuple[int, int] = (120, 120), deformation_scale: float = 1.0) -> None:
-    """Executa a construção das duas geometrias e salva metadados reproduzíveis."""
-    svg_terminals, viewbox, terminal_dimensions, terminal_angles = parse_svg_rects(SVG_PATH)
-    svg_contour = parse_svg_contour(SVG_PATH)
-
-    terminals = normalize_points(svg_terminals, viewbox)
-    deformed = normalize_points(svg_contour, viewbox)
-
-    # Centralização e recorte da amplitude evitam que a discretização altere
-    # os terminais ou produza contorno inválido fora do domínio.
-    xmin, xmax = terminals[:, 0].min(), terminals[:, 0].max()
-    del xmin, xmax
-
-    regular = smooth_contour(deformed)
-
+    """Constrói exclusivamente o floco deformado e salva máscaras pelas Eqs. R2 e R7--R9."""
     width, height = lattice_size
-    regular_lattice = contour_to_lattice(regular, lattice_size)
+    terminals_normalized = uniform_terminal_targets()
+    deformed = snowflake_contour()
     deformed_lattice = contour_to_lattice(deformed, lattice_size)
 
-    regular_builder, lattice, regular_mask, regular_points = make_kwant_cavity(
-        regular_lattice, lattice_size
-    )
-    deformed_builder, _, deformed_mask, deformed_points = make_kwant_cavity(
+    deformed_builder, lattice, deformed_mask, deformed_points = make_kwant_cavity(
         deformed_lattice, lattice_size
     )
-
-    regular_sites = sum(1 for _ in regular_builder.sites())
     deformed_sites = sum(1 for _ in deformed_builder.sites())
 
     terminal_lattice = np.column_stack(
-        (np.round(terminals[:, 0] * (width - 1)),
-         np.round(terminals[:, 1] * (height - 1)))
+        (np.round(terminals_normalized[:, 0] * (width - 1)),
+         np.round(terminals_normalized[:, 1] * (height - 1)))
     ).astype(int)
-
-    regular_terminal_lattice, regular_terminal_normals = project_terminals_to_boundary(regular_mask, terminal_lattice)
-    deformed_terminal_lattice, deformed_terminal_normals = project_terminals_to_boundary(deformed_mask, terminal_lattice)
-
-    # Posições e normais dos terminais já foram calculadas.
+    terminal_lattice, terminal_normals = project_terminals_to_boundary(
+        deformed_mask, terminal_lattice
+    )
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     np.savez(
         DATA_DIR / "geometries.npz",
-        regular_contour=regular,
-        deformed_contour=deformed,
-        regular_mask=regular_mask,
-        deformed_mask=deformed_mask,
-        terminals_normalized=terminals,
+        contour=deformed,
+        mask=deformed_mask,
+        terminals_normalized=terminals_normalized,
         terminals_lattice=terminal_lattice,
-        regular_terminal_lattice=regular_terminal_lattice,
-        deformed_terminal_lattice=deformed_terminal_lattice,
-        regular_terminal_normals=regular_terminal_normals,
-        deformed_terminal_normals=deformed_terminal_normals,
+        terminal_normals=terminal_normals,
         terminal_names=np.asarray(TERMINAL_NAMES),
-        terminal_dimensions=terminal_dimensions,
-        terminal_angles=terminal_angles,
+        terminal_dimensions=np.asarray([[7.0, 7.0]] * LEAD_COUNT),
+        terminal_angles=np.rad2deg(np.arange(LEAD_COUNT) * 2.0 * math.pi / LEAD_COUNT),
         lattice_size=np.asarray(lattice_size),
         lattice_vectors=np.asarray(lattice.prim_vecs),
         hopping=-1.0,
         onsite=0.0,
         deformation_scale=float(deformation_scale),
-        regular_site_count=np.asarray(regular_sites),
-        deformed_site_count=np.asarray(deformed_sites),
+        site_count=np.asarray(deformed_sites),
     )
 
-    write_geometry_svg(DATA_DIR / "geometries.svg", regular, deformed, terminals)
+    write_geometry_svg(DATA_DIR / "geometries.svg", deformed,
+                       deformed, terminals_normalized)
 
     print(f"Lattice: {width} x {height}")
-    print(f"Sítios regular: {regular_sites}")
-    print(f"Sítios deformada: {deformed_sites}")
+    print(f"Sítios do floco deformado: {deformed_sites}")
     print("Dados: data/geometries.npz")
-    print("Contornos: data/geometries.svg")
+    print("Contorno: data/geometries.svg")
 
 
 if __name__ == "__main__":

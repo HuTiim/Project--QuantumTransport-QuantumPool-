@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""Calcula o transporte coerente das cavidades regular e deformada.
+"""Calcula o transporte coerente do floco de neve deformado.
 
-Referências: matriz tight-binding R1--R2, modos propagantes R10--R11,
-matriz de espalhamento R12--R13 e transmissores R14--R15 do
-DOCS/Report.md.
+Referências: R1--R2, R10--R15 do DOCS/Report.md.
 """
 
 from __future__ import annotations
@@ -35,7 +33,7 @@ def add_semi_infinite_leads(
     terminal_normals: np.ndarray,
     lead_width: int = 7,
 ) -> kwant.builder.FiniteSystem:
-    """Acopla três contatos semi-infinitos às interfaces da Eq. R9."""
+    """Acopla seis contatos semi-infinitos uniformes às interfaces da Eq. R9."""
     height, width = mask.shape
     x_offset = width // 2
     y_offset = height // 2
@@ -96,29 +94,41 @@ def calculate_geometry(
 ) -> dict[str, np.ndarray]:
     """Calcula transmissores $T_{mn}$ e condutâncias pelas Eqs. R14--R15."""
     with np.load(DATA_DIR / "geometries.npz") as geometry:
-        mask = geometry[f"{geometry_name}_mask"]
-        terminals = geometry[f"{geometry_name}_terminal_lattice"]
-        normals = geometry[f"{geometry_name}_terminal_normals"]
+        mask = geometry["mask"]
+        terminals = geometry["terminals_lattice"]
+        normals = geometry["terminal_normals"]
 
     cavity, lattice = make_cavity_from_mask(mask)
     system = add_semi_infinite_leads(
         cavity, lattice, mask, terminals, normals, lead_width
     )
 
-    transmissions = np.zeros((energies.size, 3, 3), dtype=float)
-    mode_counts = np.zeros((energies.size, 3), dtype=int)
+    lead_count = len(terminals)
+    transmissions = np.zeros((energies.size, lead_count, lead_count), dtype=float)
+    mode_counts = np.zeros((energies.size, lead_count), dtype=int)
 
     for index, energy in enumerate(energies):
-        scattering = kwant.smatrix(system, float(energy))
-        mode_counts[index] = [len(system.leads[lead].modes(float(energy))[0].momenta) for lead in range(3)]
-        for source in range(3):
-            for drain in range(3):
-                transmissions[index, drain, source] = scattering.transmission(drain, source)
+        try:
+            scattering = kwant.smatrix(system, float(energy))
+            mode_counts[index] = [
+                len(system.leads[lead].modes(float(energy))[0].momenta)
+                for lead in range(lead_count)
+            ]
+            for source in range(lead_count):
+                for drain in range(lead_count):
+                    transmissions[index, drain, source] = scattering.transmission(drain, source)
+        except Exception:
+            transmissions[index, :, :] = np.nan
+            mode_counts[index, :] = 0
 
     return {
         "energies": energies,
         "transmissions": transmissions,
         "mode_counts": mode_counts,
+        "outgoing_per_source": np.nansum(transmissions, axis=1),
+        "incoming_per_drain": np.nansum(transmissions, axis=2),
+        "row_sums": np.nansum(transmissions, axis=1),
+        "column_sums": np.nansum(transmissions, axis=2),
         "lead_width": np.asarray(lead_width),
         "geometry": np.asarray(geometry_name),
     }
@@ -126,7 +136,7 @@ def calculate_geometry(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--geometry", choices=("regular", "deformed"), required=True)
+    parser.add_argument("--geometry", choices=("deformed",), default="deformed")
     parser.add_argument("--e-min", type=float, default=-1.8)
     parser.add_argument("--e-max", type=float, default=1.8)
     parser.add_argument("--energy-count", type=int, default=37)
